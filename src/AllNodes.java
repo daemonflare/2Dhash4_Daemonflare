@@ -1,3 +1,4 @@
+/*
 import java.util.*;
 
 public class AllNodes {
@@ -68,39 +69,7 @@ public class AllNodes {
         }
         return nodes;
     }
-
-    public static int calculateDistanceBetweenNodes(String hashID1, String hashID2) {
-        // Convert hashIDs to binary strings
-        String binaryHashID1 = hexToBinary(hashID1);
-        String binaryHashID2 = hexToBinary(hashID2);
-
-        // Find the number of leading matching bits
-        int matchingBits = 0;
-        for (int i = 0; i < binaryHashID1.length(); i++) {
-            if (binaryHashID1.charAt(i) == binaryHashID2.charAt(i)) {
-                matchingBits++;
-            } else {
-                break;
-            }
-        }
-
-        // Calculate the distance
-        return 256 - matchingBits;
-    }
-
-    // Helper method to convert a hexadecimal string to binary string
-    private static String hexToBinary(String hexString) {
-        if (hexString == null) {
-            return ""; // Return an empty string if hexString is null
-        }
-
-        StringBuilder binaryStringBuilder = new StringBuilder();
-        for (int i = 0; i < hexString.length(); i += 2) {
-            // Increment by 2 to read two characters at a time
-            String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length())); // Ensure correct substring length
-            String binary = Integer.toBinaryString(Integer.parseInt(hexPair, 16));
-            binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0')); // Ensure each binary string is 8 bits long
-        }
-        return binaryStringBuilder.toString();
-    }
 }
+
+// shelving this for now; not sure if it is needed
+*/

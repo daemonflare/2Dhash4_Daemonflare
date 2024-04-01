@@ -28,10 +28,21 @@ public class FullNode implements FullNodeInterface {
     String hashID; // hex ID of this node
     String startingNodeName;
 
+    public static class NodeData{
+        String emailName, hashID;
+        public NodeData(String emailName, String hashID) {
+            this.emailName = emailName;
+            this.hashID = hashID;
+        }
+        public String getHashID() { // used in allNodes to get and group similar nodes
+            return this.hashID;
+        }
+    }
+
     public FullNode(){
         KVPairs = new HashMap<>();
         this.hashID = generateHashID(); // Generate hashID when node is instantiated
-        AllNodes.addNode(this); // Add the node to the network
+        //AllNodes.addNode(this); // Add the node to the network
     }
     // Method to generate hashID for the node
     private String generateHashID() {
@@ -181,7 +192,7 @@ public class FullNode implements FullNodeInterface {
 
                         // searches across ALL nodes, not just this instantiated one :)
                         boolean found = false;
-                        for (FullNode node : AllNodes.getAllNodes()) {
+                        /*for (FullNode node : AllNodes.getAllNodes()) {
                             String value = node.get(key);
                             System.out.println("Searching in node: " + node.hashID);
                             if (value != null) {
@@ -191,7 +202,7 @@ public class FullNode implements FullNodeInterface {
                                 found = true;
                                 break; // value found!
                             }
-                        }
+                        }*/
 
                         if (!found) {
                             System.out.println("Value not found in any node");
@@ -243,15 +254,11 @@ public class FullNode implements FullNodeInterface {
     public void setStartingNodeName(String startingNodeName) {
         this.startingNodeName = startingNodeName;
         this.hashID = generateHashID(); // Now generate hashID after setting startingNodeName
-        AllNodes.addNode(this); // Add the node to the network
+        //AllNodes.addNode(this); // Add the node to the network
     }
 
     public String getStartingNodeName(){
         return startingNodeName;
-    }
-
-    public String getHashID() { // used in allNodes to get and group similar nodes
-        return this.hashID;
     }
 }
 

@@ -8,11 +8,15 @@
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 // DO NOT EDIT starts
 interface TemporaryNodeInterface {
     public boolean start(String startingNodeName, String startingNodeAddress) throws IOException;
+
     public boolean store(String key, String value);
+
     public String get(String key);
 }
 // DO NOT EDIT ends
@@ -91,6 +95,34 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 return valueBuilder.toString().trim();
             } else if (response.equals("NOPE")) {
                 System.out.println("nothing corresponds to " + key);
+                List<FullNode.NodeData> nodes = getNearestNodes();
+                String hexString = stringToHex(key);
+                for (FullNode.NodeData ignored : nodes) {
+                    String[] segments = hexString.split(":");
+                    String ip = segments[0];
+                    int port = Integer.parseInt(segments[1]);
+
+                    Socket loopsocket = new Socket(ip, port);
+                    BufferedReader loopreader = new BufferedReader(new InputStreamReader(loopsocket.getInputStream()));
+                    BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
+
+                    loopwriter.write("START 1 " + name + "\n");
+                    writer.flush();
+
+                    loopreader.readLine();
+
+                    loopwriter.write("GET 1 " + "\n");
+                    writer.flush();
+
+                    String loopedResponse = reader.readLine();
+
+                    if (loopedResponse.startsWith("VALUE")){
+                        String[] valueSplitter = hexString.split(":");
+                        return String.valueOf(valueSplitter[1]);
+                    } else {
+                        // go to next until its finished
+                    }
+                }
                 return null;
             } else {
                 System.out.println("invalid: " + response);
@@ -99,25 +131,74 @@ public class TemporaryNode implements TemporaryNodeInterface {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void echo() {
-        try {
-            writer.write("ECHO?\n");
-            writer.flush();
+    public List<FullNode.NodeData> getNearestNodes() throws IOException {
+        List<FullNode.NodeData> searchedNodes = new ArrayList<>();
+        writer.write("NEAREST?");
+        writer.flush();
 
-            // Read the response from the server
-            String response = reader.readLine();
+        String nodesText = reader.readLine();
 
-            if (response != null && response.equals("OHCE")) {
-                System.out.println("Connection is active: OHCE");
-            } else {
-                System.out.println("Unexpected response: " + response);
+        if (nodesText.startsWith("NODES")) {
+            int numNodes = Integer.parseInt(nodesText.split(" ")[1]);
+
+            for (int i = 0; i < numNodes; i++) {
+                String nodeName = reader.readLine();
+                String nodeAddress = reader.readLine();
+
+                FullNode.NodeData nodeData = new FullNode.NodeData(nodeName,nodeAddress);
+                searchedNodes.add(nodeData);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        return searchedNodes;
+    }
+
+
+    public static String stringToHex(String input) {
+        byte[] byteArray = input.getBytes();
+        StringBuilder hexBuilder = new StringBuilder();
+        for (byte b : byteArray) {
+            String hex = Integer.toHexString(b & 0xFF);
+            if (hex.length() == 1) {
+                hexBuilder.append('0');
+            }
+            hexBuilder.append(hex);
+        }
+        return hexBuilder.toString();
+    }
+
+    public static int calculateDistanceBetweenNodes(String hashID1, String hashID2) {
+        String binaryHashID1 = hexToBinary(hashID1);
+        String binaryHashID2 = hexToBinary(hashID2);
+        // string to hex, hex to binary
+
+        int matchingBits = 0;
+        for (int i = 0; i < binaryHashID1.length(); i++) {
+            if (binaryHashID1.charAt(i) == binaryHashID2.charAt(i)) {
+                matchingBits++;
+            } else {
+                break;
+            }
+        }
+
+        return 256 - matchingBits;
+    }
+    private static String hexToBinary(String hexString) {
+        if (hexString == null) {
+            return "";
+        }
+
+        StringBuilder binaryStringBuilder = new StringBuilder();
+        for (int i = 0; i < hexString.length(); i += 2) {
+            String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length()));
+            String binary = Integer.toBinaryString(Integer.parseInt(hexPair, 16));
+            binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0'));
+        }
+        return binaryStringBuilder.toString();
     }
 
     public void terminateConnection(String reason) { // hook, line and sinker >:)
