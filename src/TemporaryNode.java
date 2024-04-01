@@ -69,24 +69,34 @@ public class TemporaryNode implements TemporaryNodeInterface {
         }
     }
 
+    @Override
     public String get(String key) {
         try {
-            int numKeys = 1;  // storing one key
-
-            writer.write("GET? " + numKeys + "\n");
+            writer.write("GET? 1\n");
             writer.write(key + "\n");
             writer.flush();
 
-            // log get request
-            System.out.println("GET request sent: GET? " + numKeys);
-            System.out.println("Key: " + key);
-            return reader.readLine();
+            String response = reader.readLine();
+
+            if (response.startsWith("VALUE")) {
+                int numLines = Integer.parseInt(response.split(" ")[1]);
+                StringBuilder valueBuilder = new StringBuilder();
+                for (int i = 0; i < numLines; i++) {
+                    valueBuilder.append(reader.readLine()).append("\n");
+                }
+                return valueBuilder.toString().trim();
+            } else if (response.equals("NOPE")) {
+                System.out.println("nothing corresponds to " + key);
+                return null;
+            } else {
+                System.out.println("invalid: " + response);
+                return null;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
-
 
     public void echo() {
         try {
