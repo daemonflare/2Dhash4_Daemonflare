@@ -95,7 +95,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 return valueBuilder.toString().trim();
             } else if (response.equals("NOPE")) {
                 System.out.println("nothing corresponds to " + key);
-                List<FullNode.NodeData> nodes = getNearestNodes();
+                List<FullNode.NodeData> nodes = getNearestNodes(reader,writer);
                 String hexString = stringToHex(key);
                 for (FullNode.NodeData ignored : nodes) {
                     invokeNearest(hexString);
@@ -141,19 +141,19 @@ public class TemporaryNode implements TemporaryNodeInterface {
         return ip;
     }
 
-    public List<FullNode.NodeData> getNearestNodes() throws IOException {
+    public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw) throws IOException {
         List<FullNode.NodeData> searchedNodes = new ArrayList<>();
-        writer.write("NEAREST?");
-        writer.flush();
+        lw.write("NEAREST?");
+        lw.flush();
 
-        String nodesText = reader.readLine();
+        String nodesText = lr.readLine();
 
         if (nodesText.startsWith("NODES")) {
             int numNodes = Integer.parseInt(nodesText.split(" ")[1]);
 
             for (int i = 0; i < numNodes; i++) {
-                String nodeName = reader.readLine();
-                String nodeAddress = reader.readLine();
+                String nodeName = lr.readLine();
+                String nodeAddress = lr.readLine();
 
                 FullNode.NodeData nodeData = new FullNode.NodeData(nodeName,nodeAddress);
                 searchedNodes.add(nodeData);
