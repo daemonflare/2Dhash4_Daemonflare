@@ -98,30 +98,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 List<FullNode.NodeData> nodes = getNearestNodes();
                 String hexString = stringToHex(key);
                 for (FullNode.NodeData ignored : nodes) {
-                    String[] segments = hexString.split(":");
-                    String ip = segments[0];
-                    int port = Integer.parseInt(segments[1]);
-
-                    Socket loopsocket = new Socket(ip, port);
-                    BufferedReader loopreader = new BufferedReader(new InputStreamReader(loopsocket.getInputStream()));
-                    BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
-
-                    loopwriter.write("START 1 " + name + "\n");
-                    writer.flush();
-
-                    loopreader.readLine();
-
-                    loopwriter.write("GET 1 " + "\n");
-                    writer.flush();
-
-                    String loopedResponse = reader.readLine();
-
-                    if (loopedResponse.startsWith("VALUE")){
-                        String[] valueSplitter = hexString.split(":");
-                        return String.valueOf(valueSplitter[1]);
-                    } else {
-                        // go to next until its finished
-                    }
+                    invokeNearest(hexString);
                 }
                 return null;
             } else {
@@ -134,6 +111,34 @@ public class TemporaryNode implements TemporaryNodeInterface {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String invokeNearest(String hexString) throws IOException {
+        String[] segments = hexString.split(":");
+        String ip = segments[0];
+        int port = Integer.parseInt(segments[1]);
+
+        Socket loopsocket = new Socket(ip, port);
+        BufferedReader loopreader = new BufferedReader(new InputStreamReader(loopsocket.getInputStream()));
+        BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
+
+        loopwriter.write("START 1 " + name + "\n");
+        writer.flush();
+
+        loopreader.readLine();
+
+        loopwriter.write("GET 1 " + "\n");
+        writer.flush();
+
+        String loopedResponse = reader.readLine();
+
+        if (loopedResponse.startsWith("VALUE")){
+            String[] valueSplitter = hexString.split(":");
+            return String.valueOf(valueSplitter[1]);
+        } else {
+            // go to next until its finished
+        }
+        return ip;
     }
 
     public List<FullNode.NodeData> getNearestNodes() throws IOException {
