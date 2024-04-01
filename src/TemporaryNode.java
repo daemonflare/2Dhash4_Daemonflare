@@ -51,21 +51,22 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
     public boolean store(String key, String value) {
         try {
-            int numKeys = 1; // dirty fix to limiting it to 1
-            int numValues = 1;
-
-            // Send the PUT request with the correct number of keys and values
-            writer.write("PUT? " + numKeys + " " + numValues + "\n");
-            writer.write(key + "\n" + value + "\n");
+            writer.write("PUT? 1 " + value.split("\n").length + "\n");
+            writer.write(key + "\n");
+            writer.write(value + "\n");
             writer.flush();
 
-            // Log the PUT request sent
-            System.out.println("PUT request sent: PUT? " + numKeys + " " + numValues);
-            System.out.println("Key: " + key);
-            System.out.println("Value: " + value);
+            String response = reader.readLine();
 
-            return true;
-        } catch (Exception e) {
+            if (response.equals("SUCCESS")) {
+                return true;
+            } else if (response.equals("FAILED")) {
+                return false;
+            } else {
+                System.out.println("invalid: " + response);
+                return false;
+            }
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
