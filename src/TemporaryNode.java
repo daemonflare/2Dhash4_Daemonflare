@@ -40,6 +40,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             writer.write("START 1 " + name + "\n");
             writer.flush();
 
+            System.out.println(reader.readLine());
+
             return true;
         } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
             e.printStackTrace();
