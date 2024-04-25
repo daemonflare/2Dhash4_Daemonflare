@@ -112,7 +112,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
             } else if (response.equals("NOPE")) { // this is in the wrong place lol
                 String hexString = stringToHex(key);
                 List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
-                terminateConnection("RECEIVED NOPE");
 //                for (FullNode.NodeData ignored : nodes) {
 //                    invokeNearest(hexString);
 //                    start(ignored.emailName, ignored.address);
