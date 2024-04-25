@@ -220,12 +220,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
     public void terminateConnection(String reason) { // hook, line and sinker >:)
         try {
+            System.out.println("REACHES HERE :)");
             writer.write("END " + reason);
             writer.flush();
             socket.close();
 //            reader.close();
 //            writer.close();
 
+            System.out.println("REACHES END :)");
             System.out.println("Connection terminated: " + reason);
         } catch (IOException e) {
             e.printStackTrace();
