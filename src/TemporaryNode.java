@@ -119,6 +119,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 //                    return get(key);
 //                }
 
+                System.out.println(nodes.size());
                 FullNode.NodeData node = nodes.get(0);
                 this.terminateConnection("TEST END CONNECTION");
                 if (start(node.emailName, node.address)){
