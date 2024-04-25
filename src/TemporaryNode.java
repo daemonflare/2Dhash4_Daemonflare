@@ -62,6 +62,11 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
             String response = reader.readLine();
 
+            String hexString = stringToHex(key);
+            List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
+            for (FullNode.NodeData ignored : nodes) {
+                invokeNearest(hexString);
+            }
             if (response.equals("SUCCESS")) {
                 return true;
             } else if (response.equals("FAILED")) {
@@ -93,12 +98,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
                     valueBuilder.append(reader.readLine()).append("\n");
                 }
                 return valueBuilder.toString().trim();
-            } else if (response.equals("NOPE")) {
-                System.out.println("nothing corresponds to " + key);
-                List<FullNode.NodeData> nodes = getNearestNodes(reader,writer);
+            } else if (response.equals("NOPE")) { // this is in the wrong place lol
                 String hexString = stringToHex(key);
+                List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
+                terminateConnection("RECEIVED NOPE");
                 for (FullNode.NodeData ignored : nodes) {
-                    invokeNearest(hexString);
+//                    invokeNearest(hexString);
+                    start(ignored.emailName, ignored.address);
+                    return get(key);
                 }
                 return null;
             } else {
@@ -144,9 +151,9 @@ public class TemporaryNode implements TemporaryNodeInterface {
     }
 
 
-    public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw) throws IOException {
+    public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw, String hex) throws IOException {
         List<FullNode.NodeData> searchedNodes = new ArrayList<>();
-        lw.write("NEAREST?");
+        lw.write("NEAREST? " + hex + "\n");
         lw.flush();
 
         String nodesText = lr.readLine();
@@ -158,7 +165,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 String nodeName = lr.readLine();
                 String nodeAddress = lr.readLine();
 
-                FullNode.NodeData nodeData = new FullNode.NodeData(nodeName,nodeAddress);
+                FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress);
                 searchedNodes.add(nodeData);
             }
         }

@@ -29,13 +29,10 @@ public class FullNode implements FullNodeInterface {
     String startingNodeName;
 
     public static class NodeData{
-        String emailName, hashID;
-        public NodeData(String emailName, String hashID) {
+        String emailName, address;
+        public NodeData(String emailName, String address) {
             this.emailName = emailName;
-            this.hashID = hashID;
-        }
-        public String getHashID() { // used in allNodes to get and group similar nodes
-            return this.hashID;
+            this.address = address;
         }
     }
 
