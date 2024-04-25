@@ -86,8 +86,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
     @Override
     public String get(String key) {
         try {
-            writer.write("GET? 1\n");
-            writer.write(key + "\n");
+            if (!key.endsWith("\n")) {
+                key += "\n";
+            }
+
+            int keyInt = key.split("\n").length;
+
+            writer.write("GET? " + keyInt + "\n");
+            writer.write(key);
             writer.flush();
 
             String response = reader.readLine();
@@ -97,16 +103,25 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 int numLines = Integer.parseInt(response.split(" ")[1]);
                 StringBuilder valueBuilder = new StringBuilder();
                 for (int i = 0; i < numLines; i++) {
-                    valueBuilder.append(reader.readLine()).append("\n");
+                    valueBuilder.append(reader.readLine());
+                    if (i < numLines - 1){
+                        valueBuilder.append("\n"); // bellissimo
+                    }
                 }
-                return valueBuilder.toString().trim();
+                return valueBuilder.toString();
             } else if (response.equals("NOPE")) { // this is in the wrong place lol
                 String hexString = stringToHex(key);
                 List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
                 terminateConnection("RECEIVED NOPE");
-                for (FullNode.NodeData ignored : nodes) {
+//                for (FullNode.NodeData ignored : nodes) {
 //                    invokeNearest(hexString);
-                    start(ignored.emailName, ignored.address);
+//                    start(ignored.emailName, ignored.address);
+//                    return get(key);
+//                }
+
+                FullNode.NodeData node = nodes.get(0);
+                this.terminateConnection("TEST END CONNECTION");
+                if (start(node.emailName, node.address)){
                     return get(key);
                 }
                 return null;
@@ -226,8 +241,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             writer.flush();
             System.out.println("REACHES END :)");
             socket.close();
-//            reader.close();
-//            writer.close();
+            reader.close();
+            writer.close();
 
             System.out.println("Connection terminated: " + reason);
         } catch (IOException e) {
