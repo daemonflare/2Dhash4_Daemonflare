@@ -130,11 +130,9 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("invalid: " + response);
                 return null;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
