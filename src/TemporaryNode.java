@@ -223,11 +223,11 @@ public class TemporaryNode implements TemporaryNodeInterface {
             System.out.println("REACHES HERE :)");
             writer.write("END " + reason);
             writer.flush();
+            System.out.println("REACHES END :)");
             socket.close();
 //            reader.close();
 //            writer.close();
 
-            System.out.println("REACHES END :)");
             System.out.println("Connection terminated: " + reason);
         } catch (IOException e) {
             e.printStackTrace();
