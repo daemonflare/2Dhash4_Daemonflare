@@ -176,16 +176,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
         String nodesText = lr.readLine();
 
-        if (nodesText.startsWith("NODES")) {
-            int numNodes = Integer.parseInt(nodesText.split(" ")[1]);
+        int numNodes = Integer.parseInt(nodesText.split(" ")[1]);
 
-            for (int i = 0; i < numNodes; i++) {
-                String nodeName = lr.readLine();
-                String nodeAddress = lr.readLine();
+        for (int i = 0; i < numNodes; i++) {
+            String nodeName = lr.readLine();
+            String nodeAddress = lr.readLine();
 
-                FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress);
-                searchedNodes.add(nodeData);
-            }
+            FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress);
+            searchedNodes.add(nodeData);
         }
         return searchedNodes;
     }
