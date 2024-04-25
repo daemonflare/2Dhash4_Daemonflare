@@ -221,8 +221,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             writer.write("END " + reason);
             writer.flush();
             socket.close();
-            reader.close();
-            writer.close();
+//            reader.close();
+//            writer.close();
 
             System.out.println("Connection terminated: " + reason);
         } catch (IOException e) {
