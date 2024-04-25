@@ -222,6 +222,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
         try {
             System.out.println("REACHES HERE :)");
             writer.write("END " + reason);
+            System.out.println("END " + reason);
             writer.flush();
             System.out.println("REACHES END :)");
             socket.close();
