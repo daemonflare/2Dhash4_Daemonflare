@@ -123,23 +123,26 @@ public class TemporaryNode implements TemporaryNodeInterface {
         BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
 
         loopwriter.write("START 1 " + name + "\n");
-        writer.flush();
+        loopwriter.flush();
 
         loopreader.readLine();
 
-        loopwriter.write("GET 1 " + "\n");
-        writer.flush();
+        loopwriter.write("GET? 1\n");
+        loopwriter.write(hexString + "\n"); // this is wrong? idk
+        loopwriter.flush();
 
-        String loopedResponse = reader.readLine();
+        String loopedResponse = loopreader.readLine();
 
         if (loopedResponse.startsWith("VALUE")){
-            String[] valueSplitter = hexString.split(":");
+            String[] valueSplitter = loopedResponse.split(":");
             return String.valueOf(valueSplitter[1]);
         } else {
-            // go to next until its finished
+            // not here, keep looking
+            System.out.println("nothing here!");
         }
         return ip;
     }
+
 
     public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw) throws IOException {
         List<FullNode.NodeData> searchedNodes = new ArrayList<>();
