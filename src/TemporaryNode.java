@@ -9,7 +9,9 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // DO NOT EDIT starts
 interface TemporaryNodeInterface {
@@ -27,6 +29,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
     Socket socket;
     BufferedReader reader;
     BufferedWriter writer;
+    Map<String, String> visitedNodes = new HashMap<>();
 
     public boolean start(String startingNodeName, String startingNodeAddress) {
         this.name = startingNodeName;
@@ -86,51 +89,96 @@ public class TemporaryNode implements TemporaryNodeInterface {
     @Override
     public String get(String key) {
         try {
-            if (!key.endsWith("\n")) {
+            if (!key.endsWith("\n")){
                 key += "\n";
             }
 
-            int keyInt = key.split("\n").length;
+            int keyNo = key.split("\n").length;
 
-            writer.write("GET? " + keyInt + "\n");
+            writer.write("GET? " + keyNo + "\n");
             writer.write(key);
             writer.flush();
 
+            System.out.println("Sent: GET? " + keyNo);
+
             String response = reader.readLine();
 
-            System.out.println(response);
             if (response.startsWith("VALUE")) {
-                int numLines = Integer.parseInt(response.split(" ")[1]);
-                StringBuilder valueBuilder = new StringBuilder();
-                for (int i = 0; i < numLines; i++) {
-                    valueBuilder.append(reader.readLine());
-                    if (i < numLines - 1){
-                        valueBuilder.append("\n"); // bellissimo
+                int valueNo = Integer.parseInt(response.split(" ")[1]);
+                StringBuilder value = new StringBuilder();
+
+                for (int i = 0; i < valueNo; i++){
+                    value.append(reader.readLine());
+                    if (i < valueNo - 1){
+                        value.append("\n");
                     }
                 }
-                return valueBuilder.toString();
-            } else if (response.equals("NOPE")) { // this is in the wrong place lol
-                String hexString = stringToHex(key);
-                List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
-//                for (FullNode.NodeData ignored : nodes) {
-//                    invokeNearest(hexString);
-//                    start(ignored.emailName, ignored.address);
-//                    return get(key);
-//                }
 
-                System.out.println(nodes.size());
-                FullNode.NodeData node = nodes.get(0);
-                this.terminateConnection("TEST END CONNECTION");
-                if (start(node.emailName, node.address)){
+                String result = value.toString();
+
+                System.out.println("Received: VALUE " + valueNo + "\n" + result);
+                return result;
+
+            } else if (response.startsWith("NOPE")){
+                System.out.println("Received: NOPE");
+
+                String keyID = stringToHex(key);
+
+                String nearestResult = invokeNearest(keyID);
+                List<FullNode.NodeData> closestNodes = new ArrayList<>();
+                String[] lines = nearestResult.split("\\r?\\n");
+
+                for (String line : lines) {
+                    String[] parts = line.split(" ");
+                    if (parts.length == 2) {
+                        String nodeName = parts[0];
+                        String nodeAddress = parts[1];
+                        closestNodes.add(new FullNode.NodeData(nodeName, nodeAddress,0));
+                    }
+                }
+
+                for (FullNode.NodeData node : closestNodes){
+                    node.dist = calculateDistanceBetweenNodes(keyID, stringToHex(node.emailName+"\n"));
+                }
+
+                FullNode.NodeData closest = closestNodes.get(0);
+
+                for (FullNode.NodeData node : closestNodes){
+                    if (node.dist <= closest.dist && !visitedNodes.containsKey(node.emailName)){
+                        closest = node;
+                    }
+                }
+
+                System.out.println("Visited nodes:");
+                for (String node : visitedNodes.keySet()){
+                    System.out.println(node);
+                    System.out.println(visitedNodes.get(node));
+                }
+
+                if (visitedNodes.containsKey(closest.emailName)){
+                    System.out.println("All nodes visited");
+                    return null;
+                }
+
+                System.out.println("Closest node: " + closest.emailName + " " + closest.address);
+
+                this.terminateConnection("Received nope from node");
+
+                if (start(closest.emailName, closest.address)) {
+                    if (get(key) != null){
+                        visitedNodes = new HashMap<>();
+                    }
+                    visitedNodes.put(this.name, this.address);
                     return get(key);
                 }
+                visitedNodes.put(this.name, this.address);
                 return null;
             } else {
-                System.out.println("invalid: " + response);
+                visitedNodes.put(this.name, this.address);
                 return null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error during GET operation: " + e.getMessage());
             return null;
         }
     }
@@ -179,7 +227,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             String nodeName = lr.readLine();
             String nodeAddress = lr.readLine();
 
-            FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress);
+            FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress,0 );
             searchedNodes.add(nodeData);
         }
         return searchedNodes;

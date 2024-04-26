@@ -30,9 +30,11 @@ public class FullNode implements FullNodeInterface {
 
     public static class NodeData{
         String emailName, address;
-        public NodeData(String emailName, String address) {
+        int dist;
+        public NodeData(String emailName, String address, int dist) {
             this.emailName = emailName;
             this.address = address;
+            this.dist = dist;
         }
     }
 
