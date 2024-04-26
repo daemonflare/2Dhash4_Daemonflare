@@ -121,6 +121,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("Received: VALUE " + valueNo + "\n");
                 return result;
             } else if (response.equals("NOPE")) {
+                System.out.println("RESPONSE IS " + response);
                 System.out.println("REACHES NOPE :)");
                 String hexID = stringToHex(key);
                 writer.write("NEAREST? " + hexID + "\n");
