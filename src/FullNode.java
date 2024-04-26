@@ -94,68 +94,7 @@ public class FullNode implements FullNodeInterface {
                 System.out.println("START " + startingNodeName + " " + startingNodeAddress);
             } else if (request.startsWith("PUT?")) {
                 try {
-                    /*String[] parts = request.split(" ");
-                    if (parts.length >= 3) {
-                        int numLinesKey = Integer.parseInt(parts[1]);
-                        int numLinesValue = Integer.parseInt(parts[2]);
-
-                        // read key
-                        System.out.println("Reading key...");
-                        StringBuilder keyBuilder = new StringBuilder();
-                        for (int i = 0; i < numLinesKey; i++) {
-                            String line = reader.readLine();
-                            System.out.println("Key line " + (i + 1) + ": " + line);
-                            keyBuilder.append(line);
-                            if (i < numLinesKey - 1) {
-                                keyBuilder.append("\n");  // dirty failsafe to ensure newline allows another command
-                            }
-                        }
-                        String key = keyBuilder.toString().trim();
-                        System.out.println("Key read: " + key);
-
-                        // read value
-                        System.out.println("Reading value...");
-                        StringBuilder valueBuilder = new StringBuilder();
-                        for (int i = 0; i < numLinesValue; i++) {
-                            String line = reader.readLine();
-                            System.out.println("Value line " + (i + 1) + ": " + line);
-                            valueBuilder.append(line);
-                            if (i < numLinesValue - 1) {
-                                valueBuilder.append("\n");  // i really shouldn't use this lol
-                            }
-                        }
-                        String value = valueBuilder.toString().trim();
-                        System.out.println("Value read: " + value);
-
-                        // compute hashID for the key
-                        byte[] hashBytes = HashID.computeHashID(key + "\n");
-                        StringBuilder hexString = new StringBuilder();
-                        for (byte b : hashBytes) {
-                            String hex = Integer.toHexString(0xff & b);
-                            if (hex.length() == 1) {
-                                hexString.append('0');
-                            }
-                            hexString.append(hex);
-                        }
-                        String hashID = hexString.toString();
-
-                        List<FullNode> closestNodes = AllNodes.findClosestNodes(hashID, 3);
-
-                        if (closestNodes.contains(this)) {
-                            KVPairs.put(key, value);
-                            writer.write("SUCCESS\n");
-                            writer.flush();
-                            System.out.println("Success!");
-                            System.out.println(KVPairs);
-                        } else {
-                            writer.write("FAILED\n");
-                            writer.flush();
-                            System.out.println("Failed!");
-                        }
-                    } else {
-                        writer.write("Invalid PUT? request\n");
-                        writer.flush();
-                    }*/
+                    //TODO
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
