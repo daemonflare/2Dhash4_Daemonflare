@@ -122,7 +122,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 return result;
             } else if (response.equals("NOPE")) {
                 System.out.println("REACHES NOPE :)");
-                // Hash the key to find nearest node names
                 String hexID = stringToHex(key);
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();

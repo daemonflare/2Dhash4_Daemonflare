@@ -30,13 +30,11 @@ public class FullNode implements FullNodeInterface {
     BufferedWriter writer;
     String hashID; // hex ID of this node
     String startingNodeName;
-
     HashMap<Integer, ArrayList<NodeData>> netMap = new HashMap<>();
 
     public static class NodeData {
         String emailName, address;
         int dist;
-
         public NodeData(String emailName, String address, int dist) {
             this.emailName = emailName;
             this.address = address;
@@ -46,11 +44,9 @@ public class FullNode implements FullNodeInterface {
 
     public FullNode() {
         KVPairs = new HashMap<>();
-        this.hashID = generateHashID(); // Generate hashID when node is instantiated
-        //AllNodes.addNode(this); // Add the node to the network
+        this.hashID = generateHashID();
     }
 
-    // Method to generate hashID for the node
     private String generateHashID() {
         try {
             StringBuilder hexString = new StringBuilder();
@@ -85,8 +81,6 @@ public class FullNode implements FullNodeInterface {
         reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
-        // bulk of the code!
-        // this is where commands are listened for and executed
         String request;
         while ((request = reader.readLine()) != null) {
             System.out.println("Request received: " + request);
@@ -119,44 +113,27 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } else if (request.startsWith("GET?")) {
-                try {
-                    String[] parts = request.split(" ");
-                    if (parts.length >= 2) {
-                        int numLinesKey = Integer.parseInt(parts[1]);
-                        StringBuilder keyBuilder = new StringBuilder();
-                        for (int i = 0; i < numLinesKey; i++) {
-                            keyBuilder.append(reader.readLine()).append("\n");
-                        }
-                        String key = keyBuilder.toString().trim();
-                        System.out.println("Key: " + key);
+            } else if (request.startsWith("GET?")) { // this one kinda useless lol all it does is print the values
+                System.out.println("Full Node request is " + request);
+                int keyLength = Integer.parseInt(request.split(" ")[1]);
+                StringBuilder keyBuilder = new StringBuilder();
+                for (int i = 0; i < keyLength; i++) {
+                    String str = reader.readLine();
+                    System.out.println("String is " + str);
+                    keyBuilder.append(str).append("\n");
+                }
 
-                        // searches across ALL nodes, not just this instantiated one :)
-                        boolean found = false;
-                        /*for (FullNode node : AllNodes.getAllNodes()) {
-                            String value = node.get(key);
-                            System.out.println("Searching in node: " + node.hashID);
-                            if (value != null) {
-                                System.out.println("Value found in node " + node.hashID);
-                                writer.write("VALUE " + value.split("\n").length + "\n" + value + "\n");
-                                writer.flush();
-                                found = true;
-                                break; // value found!
-                            }
-                        }*/
+                String key = keyBuilder.toString();
 
-                        if (!found) {
-                            System.out.println("Value not found in any node");
-                            writer.write("NOPE\n");
-                            writer.flush();
-                        }
-                    } else {
-                        System.out.println("Invalid request!");
-                        writer.write("Invalid GET? request\n");
-                        writer.flush();
-                    }
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                if (KVPairs.containsKey(key)) {
+                    String value = KVPairs.get(key);
+                    System.out.println(value);
+                    writer.write("VALUE " + value.split("\n").length + "\n" + value);
+                    writer.flush();
+                } else {
+                    System.out.println("NOPE");
+                    writer.write("NOPE\n");
+                    writer.flush();
                 }
             } else if (request.startsWith("NEAREST")) {
                 String[] parts = request.split(" ");
@@ -247,15 +224,6 @@ public class FullNode implements FullNodeInterface {
                 e.printStackTrace();
             }
         }
-    }
-
-    public void setStartingNodeName(String startingNodeName) {
-        this.startingNodeName = startingNodeName;
-        this.hashID = generateHashID();
-    }
-
-    public String getStartingNodeName() {
-        return startingNodeName;
     }
 }
 
