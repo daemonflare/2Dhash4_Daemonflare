@@ -121,6 +121,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             } else if (response.equals("NOPE")) {
                 System.out.println("RESPONSE IS " + response);
                 System.out.println("KEY BEFORE CONVERSION IS " + key);
+                System.out.println("KEY LENGTH IS " + key.length());
                 String hexID = stringToHex(key);
                 System.out.println("HEX ID IS " + hexID);
                 System.out.println("HEX ID LENGTH IS " + hexID.length());
