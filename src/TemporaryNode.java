@@ -117,7 +117,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                 String result = value.toString();
 
-                System.out.println("Received: VALUE " + valueNo + "\n" + result);
+                System.out.println("Received: VALUE " + valueNo + "\n");
                 return result;
             } else if (response.equals("NOPE")) {
                 // Hash the key to find nearest node names
