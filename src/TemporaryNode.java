@@ -121,6 +121,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("Received: VALUE " + valueNo + "\n");
                 return result;
             } else if (response.equals("NOPE")) {
+                System.out.println("REACHES NOPE :)");
                 // Hash the key to find nearest node names
                 String hexID = stringToHex(key);
                 writer.write("NEAREST? " + hexID + "\n");
@@ -128,10 +129,12 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                 response = reader.readLine();
                 if (response.startsWith("NODES")){
+                    System.out.println("REACHES START OF NODES");
                     int numIter = Integer.parseInt(response.split(" ")[1]);
                     String[] names = new String[numIter];
                     String[] addrs = new String[numIter];
                     for (int i = 0; i < numIter; i++){
+                        System.out.println("REACHES FOR LOOP");
                         // Reading all the node names and node addresses
                         response = reader.readLine();
                         System.out.println(response);
@@ -144,6 +147,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                     //Check if the node has been visited
                     for (int i = 0; i < numIter; i++){
+                        System.out.println("REACHES SECOND FOR LOOP");
                         if(visitedNodes.contains(names[i])){
                             return null;
                         }else{
