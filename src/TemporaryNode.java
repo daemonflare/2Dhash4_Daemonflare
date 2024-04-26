@@ -103,6 +103,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             System.out.println("Sent: GET? " + key);
 
             String response = reader.readLine();
+            System.out.println(response);
 
             if (response.startsWith("VALUE")) {
                 int valueNo = Integer.parseInt(response.split(" ")[1]);
@@ -125,20 +126,20 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();
 
-                String res = reader.readLine();
-                if (res.startsWith("NODES")){
-                    int numIter = Integer.parseInt(res.split(" ")[1]);
+                response = reader.readLine();
+                if (response.startsWith("NODES")){
+                    int numIter = Integer.parseInt(response.split(" ")[1]);
                     String[] names = new String[numIter];
                     String[] addrs = new String[numIter];
                     for (int i = 0; i < numIter; i++){
                         // Reading all the node names and node addresses
-                        res = reader.readLine();
-                        System.out.println(res);
-                        names[i] = res;
+                        response = reader.readLine();
+                        System.out.println(response);
+                        names[i] = response;
 
-                        res = reader.readLine();
-                        System.out.println(res);
-                        addrs[i] = res;
+                        response = reader.readLine();
+                        System.out.println(response);
+                        addrs[i] = response;
                     }
 
                     //Check if the node has been visited
