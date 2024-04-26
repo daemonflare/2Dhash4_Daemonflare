@@ -120,8 +120,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 return result;
             } else if (response.equals("NOPE")) {
                 System.out.println("RESPONSE IS " + response);
-                System.out.println("KEY BEFORE CONVERSION IS " + key);
-                System.out.println("KEY LENGTH IS " + key.length());
                 String hexID = stringToHex(key);
                 System.out.println("HEX ID IS " + hexID);
                 System.out.println("HEX ID LENGTH IS " + hexID.length());
@@ -185,6 +183,12 @@ public class TemporaryNode implements TemporaryNodeInterface {
             }
             hexBuilder.append(hex);
         }
+
+        // Pad the hex string with zeros if its length is less than 64
+        while (hexBuilder.length() < 64) {
+            hexBuilder.insert(0, '0');
+        }
+
         return hexBuilder.toString();
     }
     public void terminateConnection(String reason) { // hook, line and sinker >:)
