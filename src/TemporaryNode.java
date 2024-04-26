@@ -96,7 +96,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             int keyNo = key.split("\n").length;
 
             writer.write("GET? " + keyNo + "\n");
-            writer.write(key + "\n");
+            writer.write(key);
             writer.flush();
 
             System.out.println("Sent: GET? " + keyNo);
