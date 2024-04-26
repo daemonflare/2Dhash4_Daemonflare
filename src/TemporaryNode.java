@@ -9,9 +9,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 // DO NOT EDIT starts
 interface TemporaryNodeInterface {
@@ -124,6 +122,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("RESPONSE IS " + response);
                 System.out.println("REACHES NOPE :)");
                 String hexID = stringToHex(key);
+                System.out.println("HEX ID IS " + hexID);
+                System.out.println("HEX ID LENGTH IS " + hexID.length());
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();
 
