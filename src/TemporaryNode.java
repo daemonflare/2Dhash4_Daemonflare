@@ -188,6 +188,15 @@ public class TemporaryNode implements TemporaryNodeInterface {
         String ip = segments[0];
         int port = Integer.parseInt(segments[1]);
 
+        // Check if the current node has been visited
+        if (visitedNodes.containsKey(hexString)) {
+            // Node already visited, terminate recursion
+            return null;
+        }
+
+        // Mark the current node as visited
+        visitedNodes.put(hexString, "");
+
         Socket loopsocket = new Socket(ip, port);
         BufferedReader loopreader = new BufferedReader(new InputStreamReader(loopsocket.getInputStream()));
         BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
@@ -198,20 +207,28 @@ public class TemporaryNode implements TemporaryNodeInterface {
         loopreader.readLine();
 
         loopwriter.write("GET? 1\n");
-        loopwriter.write(hexString + "\n"); // this is wrong? idk
+        loopwriter.write(hexString + "\n");
         loopwriter.flush();
 
         String loopedResponse = loopreader.readLine();
 
-        if (loopedResponse.startsWith("VALUE")){
+        if (loopedResponse.startsWith("VALUE")) {
             String[] valueSplitter = loopedResponse.split(":");
             return String.valueOf(valueSplitter[1]);
         } else {
-            // not here, keep looking
-            System.out.println("nothing here!");
+            // Not found on this node, keep searching
+            String nearestResult = invokeNearest(hexString);
+            if (nearestResult != null) {
+                // Found on a nearby node
+                return nearestResult;
+            } else {
+                // Not found in any nearby nodes
+                System.out.println("nothing here!");
+                return null;
+            }
         }
-        return ip;
     }
+
 
 
     public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw, String hex) throws IOException {
