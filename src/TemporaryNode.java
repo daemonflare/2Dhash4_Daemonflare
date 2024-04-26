@@ -29,7 +29,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
     Socket socket;
     BufferedReader reader;
     BufferedWriter writer;
-    Map<String, String> visitedNodes = new HashMap<>();
+    List<String> visitedNodes = new ArrayList<>();
 
     public boolean start(String startingNodeName, String startingNodeAddress) {
         this.name = startingNodeName;
@@ -68,10 +68,10 @@ public class TemporaryNode implements TemporaryNodeInterface {
             String response = reader.readLine();
 
             String hexString = stringToHex(key);
-            List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
+            /*List<FullNode.NodeData> nodes = getNearestNodes(reader,writer,hexString);
             for (FullNode.NodeData ignored : nodes) {
-                invokeNearest(hexString);
-            }
+                //invokeNearest(hexString);
+            }*/
             if (response.equals("SUCCESS")) {
                 return true;
             } else if (response.equals("FAILED")) {
@@ -118,136 +118,52 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                 System.out.println("Received: VALUE " + valueNo + "\n" + result);
                 return result;
+            } else if (response.equals("NOPE")) {
+                // Hash the key to find nearest node names
+                String hexID = stringToHex(key);
+                writer.write("NEAREST? " + hexID + "\n");
+                writer.flush();
 
-            } else if (response.startsWith("NOPE")){
-                System.out.println("Received: NOPE");
+                String res = reader.readLine();
+                if (res.startsWith("NODES")){
+                    int numIter = Integer.parseInt(res.split(" ")[1]);
+                    String[] names = new String[numIter];
+                    String[] addrs = new String[numIter];
+                    for (int i = 0; i < numIter; i++){
+                        // Reading all the node names and node addresses
+                        res = reader.readLine();
+                        System.out.println(res);
+                        names[i] = res;
 
-                String keyID = stringToHex(key);
-
-                String nearestResult = invokeNearest(keyID);
-                List<FullNode.NodeData> closestNodes = new ArrayList<>();
-                String[] lines = nearestResult.split("\\r?\\n");
-
-                for (String line : lines) {
-                    String[] parts = line.split(" ");
-                    if (parts.length == 2) {
-                        String nodeName = parts[0];
-                        String nodeAddress = parts[1];
-                        closestNodes.add(new FullNode.NodeData(nodeName, nodeAddress,0));
+                        res = reader.readLine();
+                        System.out.println(res);
+                        addrs[i] = res;
                     }
-                }
 
-                for (FullNode.NodeData node : closestNodes){
-                    node.dist = calculateDistanceBetweenNodes(keyID, stringToHex(node.emailName+"\n"));
-                }
+                    //Check if the node has been visited
+                    for (int i = 0; i < numIter; i++){
+                        if(visitedNodes.contains(names[i])){
+                            return null;
+                        }else{
+                            // Otherwise, add to the list
+                            visitedNodes.add(names[i]);
+                        }
 
-                FullNode.NodeData closest = closestNodes.get(0);
-
-                for (FullNode.NodeData node : closestNodes){
-                    if (node.dist <= closest.dist && !visitedNodes.containsKey(node.emailName)){
-                        closest = node;
+                        if(this.start(names[i], addrs[i])){
+                            String value = get(key);
+                            if (value != null){
+                                return value;
+                            }
+                        }
                     }
-                }
 
-                System.out.println("Visited nodes:");
-                for (String node : visitedNodes.keySet()){
-                    System.out.println(node);
-                    System.out.println(visitedNodes.get(node));
-                }
-
-                if (visitedNodes.containsKey(closest.emailName)){
-                    System.out.println("All nodes visited");
-                    return null;
-                }
-
-                System.out.println("Closest node: " + closest.emailName + " " + closest.address);
-
-                this.terminateConnection("Received nope from node");
-
-                if (start(closest.emailName, closest.address)) {
-                    if (get(key) != null){
-                        visitedNodes = new HashMap<>();
-                    }
-                    visitedNodes.put(this.name, this.address);
-                    return get(key);
-                }
-                visitedNodes.put(this.name, this.address);
-                return null;
-            } else {
-                visitedNodes.put(this.name, this.address);
+                } // Indicate that the key was not found
                 return null;
             }
-        } catch (Exception e) {
-            System.err.println("Error during GET operation: " + e.getMessage());
-            return null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    public String invokeNearest(String hexString) throws IOException {
-        String[] segments = hexString.split(":");
-        String ip = segments[0];
-        int port = Integer.parseInt(segments[1]);
-
-        // Check if the current node has been visited
-        if (visitedNodes.containsKey(hexString)) {
-            // Node already visited, terminate recursion
-            return null;
-        }
-
-        // Mark the current node as visited
-        visitedNodes.put(hexString, "");
-
-        Socket loopsocket = new Socket(ip, port);
-        BufferedReader loopreader = new BufferedReader(new InputStreamReader(loopsocket.getInputStream()));
-        BufferedWriter loopwriter = new BufferedWriter(new OutputStreamWriter(loopsocket.getOutputStream()));
-
-        loopwriter.write("START 1 " + name + "\n");
-        loopwriter.flush();
-
-        loopreader.readLine();
-
-        loopwriter.write("GET? 1\n");
-        loopwriter.write(hexString + "\n");
-        loopwriter.flush();
-
-        String loopedResponse = loopreader.readLine();
-
-        if (loopedResponse.startsWith("VALUE")) {
-            String[] valueSplitter = loopedResponse.split(":");
-            return String.valueOf(valueSplitter[1]);
-        } else {
-            // Not found on this node, keep searching
-            String nearestResult = invokeNearest(hexString);
-            if (nearestResult != null) {
-                // Found on a nearby node
-                return nearestResult;
-            } else {
-                // Not found in any nearby nodes
-                System.out.println("nothing here!");
-                return null;
-            }
-        }
-    }
-
-
-
-    public List<FullNode.NodeData> getNearestNodes(BufferedReader lr, BufferedWriter lw, String hex) throws IOException {
-        List<FullNode.NodeData> searchedNodes = new ArrayList<>();
-        lw.write("NEAREST? " + hex + "\n");
-        lw.flush();
-
-        String nodesText = lr.readLine();
-
-        int numNodes = Integer.parseInt(nodesText.split(" ")[1]);
-
-        for (int i = 0; i < numNodes; i++) {
-            String nodeName = lr.readLine();
-            String nodeAddress = lr.readLine();
-
-            FullNode.NodeData nodeData = new FullNode.NodeData(nodeName, nodeAddress,0 );
-            searchedNodes.add(nodeData);
-        }
-        return searchedNodes;
+        return key;
     }
 
 
