@@ -8,6 +8,8 @@
 
 import java.io.*;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,22 +121,16 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("Received: VALUE " + valueNo + "\n");
                 return result;
             } else if (response.equals("NOPE")) {
-                System.out.println("RESPONSE IS " + response);
                 String hexID = stringToHex(key);
-                System.out.println("HEX ID IS " + hexID);
-                System.out.println("HEX ID LENGTH IS " + hexID.length());
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();
 
                 response = reader.readLine();
-                System.out.println("RESPONSE AFTER READLINE IS " + response);
                 if (response.startsWith("NODES")){
-                    System.out.println("REACHES START OF NODES");
                     int numIter = Integer.parseInt(response.split(" ")[1]);
                     String[] names = new String[numIter];
                     String[] addrs = new String[numIter];
                     for (int i = 0; i < numIter; i++){
-                        System.out.println("REACHES FOR LOOP");
                         // Reading all the node names and node addresses
                         response = reader.readLine();
                         System.out.println(response);
@@ -174,22 +170,22 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
 
     public static String stringToHex(String input) {
-        byte[] byteArray = input.getBytes();
-        StringBuilder hexBuilder = new StringBuilder();
-        for (byte b : byteArray) {
-            String hex = Integer.toHexString(b & 0xFF);
-            if (hex.length() == 1) {
-                hexBuilder.append('0');
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
             }
-            hexBuilder.append(hex);
-        }
 
-        // Pad the hex string with zeros if its length is less than 64
-        while (hexBuilder.length() < 64) {
-            hexBuilder.insert(0, '0');
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
         }
-
-        return hexBuilder.toString();
     }
     public void terminateConnection(String reason) { // hook, line and sinker >:)
         try {
