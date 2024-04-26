@@ -122,6 +122,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 return result;
             } else if (response.equals("NOPE")) {
                 String hexID = stringToHex(key);
+                System.out.println("Hex ID to check is " + hexID);
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();
 
