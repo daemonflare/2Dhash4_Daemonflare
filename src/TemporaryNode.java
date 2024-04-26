@@ -128,6 +128,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 writer.flush();
 
                 response = reader.readLine();
+                System.out.println("RESPONSE AFTER READLINE IS " + response);
                 if (response.startsWith("NODES")){
                     System.out.println("REACHES START OF NODES");
                     int numIter = Integer.parseInt(response.split(" ")[1]);
