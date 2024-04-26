@@ -160,7 +160,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         }
                     }
 
-                } // Indicate that the key was not found
+                }
                 return null;
             }
         } catch (IOException e) {
