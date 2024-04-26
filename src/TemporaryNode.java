@@ -185,37 +185,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
         }
         return hexBuilder.toString();
     }
-
-    public static int calculateDistanceBetweenNodes(String hashID1, String hashID2) {
-        String binaryHashID1 = hexToBinary(hashID1);
-        String binaryHashID2 = hexToBinary(hashID2);
-        // string to hex, hex to binary
-
-        int matchingBits = 0;
-        for (int i = 0; i < binaryHashID1.length(); i++) {
-            if (binaryHashID1.charAt(i) == binaryHashID2.charAt(i)) {
-                matchingBits++;
-            } else {
-                break;
-            }
-        }
-
-        return 256 - matchingBits;
-    }
-    private static String hexToBinary(String hexString) {
-        if (hexString == null) {
-            return "";
-        }
-
-        StringBuilder binaryStringBuilder = new StringBuilder();
-        for (int i = 0; i < hexString.length(); i += 2) {
-            String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length()));
-            String binary = Integer.toBinaryString(Integer.parseInt(hexPair, 16));
-            binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0'));
-        }
-        return binaryStringBuilder.toString();
-    }
-
     public void terminateConnection(String reason) { // hook, line and sinker >:)
         try {
             System.out.println("REACHES HERE :)");

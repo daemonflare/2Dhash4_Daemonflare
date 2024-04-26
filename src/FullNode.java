@@ -9,12 +9,15 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // DO NOT EDIT starts
 interface FullNodeInterface {
     public boolean listen(String ipAddress, int portNumber);
+
     public void handleIncomingConnections(String startingNodeName, String startingNodeAddress);
 }
 // DO NOT EDIT ends
@@ -28,9 +31,12 @@ public class FullNode implements FullNodeInterface {
     String hashID; // hex ID of this node
     String startingNodeName;
 
-    public static class NodeData{
+    HashMap<Integer, ArrayList<NodeData>> netMap = new HashMap<>();
+
+    public static class NodeData {
         String emailName, address;
         int dist;
+
         public NodeData(String emailName, String address, int dist) {
             this.emailName = emailName;
             this.address = address;
@@ -38,11 +44,12 @@ public class FullNode implements FullNodeInterface {
         }
     }
 
-    public FullNode(){
+    public FullNode() {
         KVPairs = new HashMap<>();
         this.hashID = generateHashID(); // Generate hashID when node is instantiated
         //AllNodes.addNode(this); // Add the node to the network
     }
+
     // Method to generate hashID for the node
     private String generateHashID() {
         try {
@@ -62,6 +69,7 @@ public class FullNode implements FullNodeInterface {
             throw new RuntimeException(e);
         }
     }
+
     public boolean listen(String ip, int port) {
         try {
             serverSocket = new ServerSocket(port);
@@ -73,7 +81,7 @@ public class FullNode implements FullNodeInterface {
         }
     }
 
-    private void acceptRequest(Socket clientSocket, String startingNodeName, String startingNodeAddress) throws IOException {
+    private void acceptRequest(Socket clientSocket, String startingNodeName, String startingNodeAddress) throws Exception {
         reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
@@ -160,14 +168,9 @@ public class FullNode implements FullNodeInterface {
                     String nodeName = reader.readLine();
                     String nodeAddress = reader.readLine();
 
-                    // Store the name and address of the full node
-                    // Implement your logic here
-
-                    // Respond with NOTIFIED
                     writer.write("NOTIFIED\n");
                     writer.flush();
 
-                    // Log the notification
                     System.out.println("Received notification for node: " + nodeName + " at address: " + nodeAddress);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -216,14 +219,70 @@ public class FullNode implements FullNodeInterface {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-        } else {
+            } else if (request.startsWith("NEAREST")) {
+                String[] parts = request.split(" ");
+                String hashID = parts[1];
+                TemporaryNode.stringToHex(hashID);
+                List<NodeData> nearestNodes = getNearestNodes(hashID);
+                String nodes = "";
+                for (NodeData n : nearestNodes) {
+                    System.out.println(n.emailName);
+                    System.out.println(n.address);
+                    System.out.println(n.dist);
+                }
+                writer.write("NODES " + nearestNodes.size() + "\n" + nodes);
+                writer.flush();
+            } else {
                 System.out.println("invalid request!");
             }
         }
     }
 
-    public String get(String key) { // used with GET?
-        return KVPairs.get(key);
+    private List<NodeData> getNearestNodes(String hexID) {
+        List<NodeData> nearestNodes = new ArrayList<>();
+        String thisNodeHex = TemporaryNode.stringToHex(this.startingNodeName + "\n");
+        int distance = calculateDistanceBetweenNodes(thisNodeHex, hexID);
+        for (int i = distance; i >= 0 && nearestNodes.size() < 3; i--) {
+            List<NodeData> n = netMap.get(distance);
+            for (NodeData nodeInfo : n) {
+                nearestNodes.add(nodeInfo);
+                if (nearestNodes.size() == 3) {
+                    break;
+                }
+            }
+        }
+        System.out.println(nearestNodes);
+        return nearestNodes;
+    }
+
+    private static String hexToBinary(String hexString) {
+        if (hexString == null) {
+            return "";
+        }
+
+        StringBuilder binaryStringBuilder = new StringBuilder();
+        for (int i = 0; i < hexString.length(); i += 2) {
+            String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length()));
+            String binary = Integer.toBinaryString(Integer.parseInt(hexPair, 16));
+            binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0'));
+        }
+        return binaryStringBuilder.toString();
+    }
+
+    public static int calculateDistanceBetweenNodes(String hashID1, String hashID2) {
+        String binaryHashID1 = hexToBinary(hashID1);
+        String binaryHashID2 = hexToBinary(hashID2);
+
+        int matchingBits = 0;
+        for (int i = 0; i < binaryHashID1.length(); i++) {
+            if (binaryHashID1.charAt(i) == binaryHashID2.charAt(i)) {
+                matchingBits++;
+            } else {
+                break;
+            }
+        }
+
+        return 256 - matchingBits;
     }
 
     public void handleIncomingConnections(String startingNodeName, String startingNodeAddress) {
@@ -233,8 +292,8 @@ public class FullNode implements FullNodeInterface {
                 new Thread(() -> {
                     try {
                         try {
-                            acceptRequest(clientSocket,startingNodeName,startingNodeAddress);
-                        } catch (IOException e) {
+                            acceptRequest(clientSocket, startingNodeName, startingNodeAddress);
+                        } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
                     } finally {
@@ -250,13 +309,13 @@ public class FullNode implements FullNodeInterface {
             }
         }
     }
+
     public void setStartingNodeName(String startingNodeName) {
         this.startingNodeName = startingNodeName;
-        this.hashID = generateHashID(); // Now generate hashID after setting startingNodeName
-        //AllNodes.addNode(this); // Add the node to the network
+        this.hashID = generateHashID();
     }
 
-    public String getStartingNodeName(){
+    public String getStartingNodeName() {
         return startingNodeName;
     }
 }
