@@ -62,12 +62,15 @@ public class TemporaryNode implements TemporaryNodeInterface {
         try {
             int storeKeyNo = key.split("\n").length;
             int storeValueNo = key.split("\n").length;
-            writer.write("PUT? " + storeKeyNo + " " +storeValueNo + "\n");
+            System.out.println("StoreKeyNo is " + storeKeyNo);
+            System.out.println("StoreValueNo is " + storeValueNo);
+            writer.write("PUT? " + storeKeyNo + " " + storeValueNo + "\n");
             writer.write(key + "\n");
             writer.write(value);
             writer.flush();
 
-            System.out.println("Sent: PUT? " + key + value);
+            System.out.println("Sent key" + key);
+            System.out.println("Sent value" + value);
 
             String response = reader.readLine();
             System.out.println(response);
@@ -75,7 +78,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
             if (response.startsWith("SUCCESS")) {
                 System.out.println("Store successful!");
             } else if (response.startsWith("FAILED")) {
-                System.out.println("No bueno :(");
                 String hexID = stringToHex(key);
                 System.out.println("Hex ID to check is " + hexID);
                 writer.write("NEAREST? " + hexID + "\n");
