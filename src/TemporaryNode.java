@@ -202,7 +202,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return null;
         }
     }
-
     public void terminateConnection(String reason) { // DESTROY THEM ALL
         try {
             System.out.println("REACHES HERE :)");
