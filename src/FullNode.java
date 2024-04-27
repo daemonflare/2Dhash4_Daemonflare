@@ -91,11 +91,41 @@ public class FullNode implements FullNodeInterface {
             if (request.startsWith("START")) {
                 System.out.println("START " + startingNodeName + " " + startingNodeAddress);
             } else if (request.startsWith("PUT?")) {
-                try {
-                    //TODO
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                String[] requestParts = request.split("\s+", 3);
+                if (requestParts.length != 3) {
+                    System.out.println("Formatting error with PUT request!");
+                    continue;
                 }
+
+                int keyLines = Integer.parseInt(requestParts[1]);
+                int valLines = Integer.parseInt(requestParts[2]);
+
+                StringBuilder keyBuilder = new StringBuilder();
+                StringBuilder valBuilder = new StringBuilder();
+
+                /*
+                keys and values are split into two
+                iterate through both and then store
+                 */
+
+                for (int i = 0; i < keyLines; i++) {
+                    String keyLine = reader.readLine();
+                    keyBuilder.append(keyLine).append("\n");
+                }
+                for (int i = 0; i < valLines; i++) {
+                    String valueLine = reader.readLine();
+                    valBuilder.append(valueLine).append("\n");
+                }
+                String key = keyBuilder.toString().trim();
+                String val = valBuilder.toString().trim();
+
+                // im not sure if storing in KVPairs is correct
+                KVPairs.put(key, val);
+                System.out.println("store successful");
+
+                writer.write("SUCCESS\n");
+                writer.flush();
+                System.out.println("Success");
             } else if (request.startsWith("ECHO?")) {
                 writer.write("OHCE\n");
                 writer.flush();
@@ -119,6 +149,7 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
+             //TODO: fix
                 System.out.println("Full Node request is " + request);
                 int keyLength = Integer.parseInt(request.split(" ")[1]);
                 StringBuilder keyBuilder = new StringBuilder();

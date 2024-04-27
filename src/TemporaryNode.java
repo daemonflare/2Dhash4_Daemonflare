@@ -35,7 +35,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
         this.name = startingNodeName;
         this.address = startingNodeAddress;
         try {
-            // socket splicing so that it doesn't get angry over string/proxy conflicts:
             String[] segments = startingNodeAddress.split(":");
             String ip = segments[0];
             int port = Integer.parseInt(segments[1]);
@@ -77,18 +76,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.println("Store successful!");
             } else if (response.startsWith("FAILED")) {
                 String hexID = stringToHex(key);
-                System.out.println("Hex ID to check is " + hexID);
                 writer.write("NEAREST? " + hexID + "\n");
                 writer.flush();
-                //TODO
                 response = reader.readLine();
-                System.out.println("Response is " + response);
                 if (response.startsWith("NODES")) {
                     int numIter = Integer.parseInt(response.split(" ")[1]);
                     String[] names = new String[numIter];
                     String[] addrs = new String[numIter];
                     for (int i = 0; i < numIter; i++) {
-                        // Reading all the node names and node addresses
                         response = reader.readLine();
                         System.out.println(response);
                         names[i] = response;
@@ -97,7 +92,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         System.out.println(response);
                         addrs[i] = response;
                     }
-                    // i think, after this, the 3 closest nodes will be shown
                     System.out.println("THESE THREE NODES ARE CLOSER!");
                 } else {
                     System.out.println("NODES condition not satisfied!");
@@ -112,7 +106,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
     @Override
     public String get(String key) {
         try {
-            // if it doesn't end in newline, add one
             if (!key.endsWith("\n")) {
                 key += "\n";
             }
@@ -186,7 +179,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
         return key;
     }
 
-
     public static String stringToHex(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -205,7 +197,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return null;
         }
     }
-    public void terminateConnection(String reason) { // DESTROY THEM ALL
+
+    public void terminateConnection(String reason) {
         try {
             writer.write("END " + reason);
             System.out.println("END " + reason);
