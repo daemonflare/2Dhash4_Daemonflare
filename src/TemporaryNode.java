@@ -82,6 +82,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 writer.flush();
                 //TODO
                 response = reader.readLine();
+                System.out.println("Response is " + response);
                 if (response.startsWith("NODES")) {
                     int numIter = Integer.parseInt(response.split(" ")[1]);
                     String[] names = new String[numIter];
