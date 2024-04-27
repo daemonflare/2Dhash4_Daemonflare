@@ -9,6 +9,8 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,7 +117,7 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } else if (request.startsWith("GET?")) { // this one kinda useless lol all it does is print the values
+            } else if (request.startsWith("GET?")) { // FIX THIS SHIT!!!!!
                 System.out.println("Full Node request is " + request);
                 int keyLength = Integer.parseInt(request.split(" ")[1]);
                 StringBuilder keyBuilder = new StringBuilder();
@@ -139,9 +141,8 @@ public class FullNode implements FullNodeInterface {
                 }
             } else if (request.startsWith("NEAREST")) {
                 String[] parts = request.split(" ");
-                String hashID = parts[1];
-                TemporaryNode.stringToHex(hashID);
-                List<NodeData> nearestNodes = getNearestNodes(hashID);
+                String convAddress = parts[1];
+                List<NodeData> nearestNodes = getNearestNodes(convAddress);
                 String nodes = "";
                 for (NodeData n : nearestNodes) {
                     System.out.println(n.emailName);
@@ -225,6 +226,24 @@ public class FullNode implements FullNodeInterface {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+    public static String stringToHex(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
