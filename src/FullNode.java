@@ -73,7 +73,7 @@ public class FullNode implements FullNodeInterface {
     public boolean listen(String ip, int port) {
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("FullNode is active @ " + ip + ":" + port);
+            System.out.println("FullNode is active @" + ip + ":" + port);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,7 +118,7 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } else if (request.startsWith("GET?")) { // FIX THIS SHIT!!!!!
+            } else if (request.startsWith("GET?")) {
                 System.out.println("Full Node request is " + request);
                 int keyLength = Integer.parseInt(request.split(" ")[1]);
                 StringBuilder keyBuilder = new StringBuilder();
@@ -161,18 +161,21 @@ public class FullNode implements FullNodeInterface {
 
     private List<NodeData> getNearestNodes(String hexID) {
         List<NodeData> nearestNodes = new ArrayList<>();
-        String thisNodeHex = TemporaryNode.stringToHex(this.startingNodeName + "\n");
+        String thisNodeHex = stringToHex(this.startingNodeName + "\n");
         int distance = calculateDistanceBetweenNodes(thisNodeHex, hexID);
+        System.out.println("Distance between nodes " + thisNodeHex + " and " + hexID + " is " + distance);
         for (int i = distance; i >= 0 && nearestNodes.size() < 3; i--) {
             List<NodeData> n = netMap.get(distance);
+            System.out.println("Test print of n is " + n.toString());
             for (NodeData nodeInfo : n) {
                 nearestNodes.add(nodeInfo);
+                System.out.println("node " + nodeInfo + " added!");
                 if (nearestNodes.size() == 3) {
                     break;
                 }
             }
         }
-        System.out.println(nearestNodes);
+        System.out.println("nearest nodes is " + nearestNodes);
         return nearestNodes;
     }
 
@@ -180,7 +183,6 @@ public class FullNode implements FullNodeInterface {
         if (hexString == null) {
             return "";
         }
-
         StringBuilder binaryStringBuilder = new StringBuilder();
         for (int i = 0; i < hexString.length(); i += 2) {
             String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length()));
@@ -203,6 +205,7 @@ public class FullNode implements FullNodeInterface {
             }
         }
 
+        System.out.println("Distance between two nodes is " + (256 - matchingBits));
         return 256 - matchingBits;
     }
 
