@@ -62,15 +62,13 @@ public class TemporaryNode implements TemporaryNodeInterface {
         try {
             int storeKeyNo = key.split("\n").length;
             int storeValueNo = key.split("\n").length;
-            System.out.println("StoreKeyNo is " + storeKeyNo);
-            System.out.println("StoreValueNo is " + storeValueNo);
             writer.write("PUT? " + storeKeyNo + " " + storeValueNo + "\n");
             writer.write(key + "\n");
-            writer.write(value);
+            writer.write(value + "\n");
             writer.flush();
 
-            System.out.println("Sent key" + key);
-            System.out.println("Sent value" + value);
+            System.out.println("Sent key " + key);
+            System.out.println("Sent value " + value);
 
             String response = reader.readLine();
             System.out.println(response);
@@ -100,6 +98,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                     }
                     // i think, after this, the 3 closest nodes will be shown
                     System.out.println("THESE THREE NODES ARE CLOSER!");
+                } else {
+                    System.out.println("NODES condition not satisfied!");
                 }
             }
         } catch (IOException e) {
