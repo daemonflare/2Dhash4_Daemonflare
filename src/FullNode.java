@@ -99,13 +99,10 @@ public class FullNode implements FullNodeInterface {
             } else if (request.startsWith("NOTIFY?")) {
                 System.out.println("REACHES HERE :)))))))))))");
                 try {
-                    String nodeName = reader.readLine();
-                    String nodeAddress = reader.readLine();
-
                     writer.write("NOTIFIED\n");
                     writer.flush();
 
-                    System.out.println("Received notification for node: " + nodeName + " at address: " + nodeAddress);
+                    System.out.println("Received notification for node: " + startingNodeName + " at address: " + startingNodeAddress);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
