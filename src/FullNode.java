@@ -96,7 +96,7 @@ public class FullNode implements FullNodeInterface {
                 writer.write("OHCE\n");
                 writer.flush();
                 System.out.println("OHCE fired");
-            } else if (request.equals("NOTIFY?")) {
+            } else if (request.startsWith("NOTIFY?")) {
                 try {
                     String nodeName = reader.readLine();
                     String nodeAddress = reader.readLine();
