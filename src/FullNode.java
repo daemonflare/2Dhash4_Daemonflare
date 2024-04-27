@@ -97,7 +97,6 @@ public class FullNode implements FullNodeInterface {
                 writer.flush();
                 System.out.println("OHCE fired");
             } else if (request.startsWith("NOTIFY?")) {
-                System.out.println("REACHES HERE :)))))))))))");
                 try {
                     writer.write("NOTIFIED\n");
                     writer.flush();
