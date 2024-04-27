@@ -97,7 +97,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         addrs[i] = response;
                     }
                     // i think, after this, the 3 closest nodes will be shown
-
                     System.out.println("THESE THREE NODES ARE CLOSER!");
                 }
             }

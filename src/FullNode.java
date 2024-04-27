@@ -24,15 +24,16 @@ interface FullNodeInterface {
 
 
 public class FullNode implements FullNodeInterface {
-    Map<String, String> KVPairs; // KV pair per node
-    ServerSocket serverSocket;
-    BufferedReader reader;
-    BufferedWriter writer;
+    Map<String, String> KVPairs; // local data pair per node
+    ServerSocket serverSocket; // linking socket
+    BufferedReader reader; // reader for incoming data
+    BufferedWriter writer; // writer for outgoing data
     String hashID; // hex ID of this node
-    String startingNodeName;
-    HashMap<Integer, ArrayList<NodeData>> netMap = new HashMap<>();
+    String startingNodeName; // starting name
+    HashMap<Integer, ArrayList<NodeData>> netMap = new HashMap<>(); // mapping
 
     public static class NodeData {
+        // this is required to calculate nearest I THINK. i'd be damned if i told you in confidence it works
         String emailName, address;
         int dist;
         public NodeData(String emailName, String address, int dist) {
@@ -95,17 +96,21 @@ public class FullNode implements FullNodeInterface {
             } else if (request.startsWith("ECHO?")) {
                 writer.write("OHCE\n");
                 writer.flush();
-                System.out.println("OHCE fired");
+                System.out.println("OHCE sent!");
             } else if (request.startsWith("NOTIFY?")) {
                 try {
+                    String nodeName = reader.readLine();
+                    String nodeAddr = reader.readLine();
+
                     writer.write("NOTIFIED\n");
                     writer.flush();
 
-                    System.out.println("Received notification for node: " + startingNodeName + " at address: " + startingNodeAddress);
+                    System.out.println("Received notification for node: " + nodeName + " at address: " + nodeAddr);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else if (request.startsWith("END")) {
+            }
+         else if (request.startsWith("END")) {
                 String[] parts = request.split(" ", 2);
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
