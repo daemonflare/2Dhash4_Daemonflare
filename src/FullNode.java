@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -142,6 +143,7 @@ public class FullNode implements FullNodeInterface {
             } else if (request.startsWith("NEAREST")) {
                 String[] parts = request.split(" ");
                 String convAddress = parts[1];
+                System.out.println("convAddress is " + convAddress);
                 List<NodeData> nearestNodes = getNearestNodes(convAddress);
                 String nodes = "";
                 for (NodeData n : nearestNodes) {
