@@ -63,8 +63,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             int storeKeyNo = key.split("\n").length;
             int storeValueNo = key.split("\n").length;
             writer.write("PUT? " + storeKeyNo + " " + storeValueNo + "\n");
-            writer.write(key + "\n");
-            writer.write(value + "\n");
+            writer.write(key);
+            writer.write(value);
             writer.flush();
 
             System.out.println("Sent key " + key);
