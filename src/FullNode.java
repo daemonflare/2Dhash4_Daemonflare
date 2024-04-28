@@ -91,7 +91,7 @@ public class FullNode implements FullNodeInterface {
             if (request.startsWith("START")) {
                 System.out.println("START " + startingNodeName + " " + startingNodeAddress);
             } else if (request.startsWith("PUT?")) {
-                String[] requestParts = request.split("\n", 3);
+                String[] requestParts = request.split(" ", 3);
                 if (requestParts.length != 3) {
                     System.out.println("Formatting error with PUT request!");
                     continue;
