@@ -151,15 +151,9 @@ public class FullNode implements FullNodeInterface {
                     continue;
                 }
 
-                int keyLines = Integer.parseInt(requestParts[1]);
-                StringBuilder keyBuilder = new StringBuilder();
-
-                for (int i = 0; i < keyLines; i++) {
-                    String keyLine = reader.readLine();
-                    keyBuilder.append(keyLine).append("\n");
-                }
-
-                String key = keyBuilder.toString().trim();
+                String key = requestParts[1].trim();
+                StringBuilder keyBuilder = new StringBuilder(); // dont get angy, its messy.
+                keyBuilder.append(key).append("\n");
 
                 if (netMap.contains(key)) {
                     String value = netMap.get(Integer.parseInt(key)).toString();
