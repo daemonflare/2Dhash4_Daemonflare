@@ -146,16 +146,15 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
-                //TODO: fix
                 System.out.println("Full Node request is " + request);
                 String[] requestParts = request.split(" ");
                 if (requestParts.length != 2) {
                     System.out.println("Invalid GET request format!");
                     return; // or handle the error appropriately
                 }
-                int keyLength = Integer.parseInt(requestParts[1]);
+                String keyLength = requestParts[1];
                 StringBuilder keyBuilder = new StringBuilder();
-                for (int i = 0; i < keyLength; i++) {
+                for (int i = 0; i < Integer.parseInt(keyLength); i++) {
                     String str = reader.readLine();
                     System.out.println("String is " + str);
                     keyBuilder.append(str).append("\n");
