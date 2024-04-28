@@ -29,6 +29,9 @@ public class TemporaryNode implements TemporaryNodeInterface {
     Socket socket;
     BufferedReader reader;
     BufferedWriter writer;
+    Socket trioSocket;
+    BufferedReader trioReader;
+    BufferedWriter trioWriter;
     List<String> visitedNodes = new ArrayList<>();
 
     public boolean start(String startingNodeName, String startingNodeAddress) {
@@ -60,7 +63,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
     public boolean store(String key, String value) {
         try {
             int storeKeyNo = key.split("\n").length;
-            int storeValueNo = key.split("\n").length;
+            int storeValueNo = value.split("\n").length;
             writer.write("PUT? " + storeKeyNo + " " + storeValueNo + "\n");
             writer.write(key);
             writer.write(value);
@@ -91,8 +94,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         response = reader.readLine();
                         System.out.println(response);
                         addrs[i] = response;
+
+                        boolean success = startAsTrios(names[i], addrs[i], key, value);
+                        if (success) {
+                            System.out.println("Started node in trios: " + names[i]);
+                        } else {
+                            System.out.println("Failed to start node in trio: " + names[i]);
+                        }
                     }
-                    System.out.println("THESE THREE NODES ARE CLOSER!");
                 } else {
                     System.out.println("NODES condition not satisfied!");
                 }
@@ -101,6 +110,48 @@ public class TemporaryNode implements TemporaryNodeInterface {
             throw new RuntimeException(e);
         }
         return false;
+    }
+
+
+    public boolean startAsTrios(String trioName, String trioAddress, String key, String value) { // used to send start for the 3 nearest after initial store
+        this.name = trioName;
+        this.address = trioAddress;
+        try {
+            String[] segments = trioAddress.split(":");
+            String ip = segments[0];
+            int port = Integer.parseInt(segments[1]);
+
+            trioSocket = new Socket(ip, port);
+            trioReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            trioWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+
+            System.out.println("Passed key is " + key);
+            System.out.println("Passed value is " + value);
+            trioWriter.write("START 1 " + name + "\n");
+            trioWriter.flush();
+
+            System.out.println(trioReader.readLine());
+
+            int trioKey = key.split("\n").length;
+            int trioVal = value.split("\n").length;
+
+            writer.write("PUT? " + trioKey + " " + trioVal + "\n");
+            writer.write(key);
+            writer.write(value);
+            writer.flush();
+
+            System.out.println("Sent key " + key);
+            System.out.println("Sent value " + value);
+
+            String response = reader.readLine();
+            System.out.println(response);
+
+            return true;
+        } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
