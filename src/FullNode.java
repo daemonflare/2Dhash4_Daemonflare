@@ -39,6 +39,7 @@ public class FullNode implements FullNodeInterface {
         // this is required to calculate nearest I THINK. i'd be damned if i told you in confidence it works
         String emailName, address;
         int dist;
+
         public NodeData(String emailName, String address, int dist) {
             this.emailName = emailName;
             this.address = address;
@@ -123,8 +124,7 @@ public class FullNode implements FullNodeInterface {
                 writer.write("SUCCESS\n");
                 writer.flush();
                 System.out.println("Success");
-            }
-            else if (request.startsWith("ECHO?")) {
+            } else if (request.startsWith("ECHO?")) {
                 writer.write("OHCE\n");
                 writer.flush();
                 System.out.println("OHCE sent!");
@@ -140,16 +140,20 @@ public class FullNode implements FullNodeInterface {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-         else if (request.startsWith("END")) {
+            } else if (request.startsWith("END")) {
                 String[] parts = request.split(" ", 2);
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
-             //TODO: fix
+                //TODO: fix
                 System.out.println("Full Node request is " + request);
-                int keyLength = Integer.parseInt(request.split(" ")[1]);
+                String[] requestParts = request.split(" ");
+                if (requestParts.length != 2) {
+                    System.out.println("Invalid GET request format!");
+                    return; // or handle the error appropriately
+                }
+                int keyLength = Integer.parseInt(requestParts[1]);
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int i = 0; i < keyLength; i++) {
                     String str = reader.readLine();
@@ -169,24 +173,27 @@ public class FullNode implements FullNodeInterface {
                     writer.write("NOPE\n");
                     writer.flush();
                 }
-            } else if (request.startsWith("NEAREST")) {
-                String[] parts = request.split(" ");
-                String convAddress = parts[1];
-                System.out.println("convAddress is " + convAddress);
-                List<NodeData> nearestNodes = getNearestNodes(convAddress);
-                String nodes = "";
-                for (NodeData n : nearestNodes) {
-                    System.out.println(n.emailName);
-                    System.out.println(n.address);
-                    System.out.println(n.dist);
-                }
-                writer.write("NODES " + nearestNodes.size() + "\n" + nodes);
-                writer.flush();
-            } else {
-                System.out.println("invalid request!");
             }
+
+        } else if (request.startsWith("NEAREST")) {
+            String[] parts = request.split(" ");
+            String convAddress = parts[1];
+            System.out.println("convAddress is " + convAddress);
+            List<NodeData> nearestNodes = getNearestNodes(convAddress);
+            String nodes = "";
+            for (NodeData n : nearestNodes) {
+                System.out.println(n.emailName);
+                System.out.println(n.address);
+                System.out.println(n.dist);
+            }
+            writer.write("NODES " + nearestNodes.size() + "\n" + nodes);
+            writer.flush();
+        } else {
+            System.out.println("invalid request!");
         }
     }
+
+}
 
     private List<NodeData> getNearestNodes(String hexID) {
         List<NodeData> nearestNodes = new ArrayList<>();
@@ -262,6 +269,7 @@ public class FullNode implements FullNodeInterface {
             }
         }
     }
+
     public static String stringToHex(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
