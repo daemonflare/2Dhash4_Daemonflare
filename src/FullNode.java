@@ -144,14 +144,9 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } // Check the incoming requests and trim any leading or trailing whitespace
-            String trimmedRequest = request.trim();
-            System.out.println("Received request: " + trimmedRequest);
-
-// Check if the trimmed request starts with "GET?"
-            if (trimmedRequest.startsWith("GET?")) {
+            } else if (request.startsWith("GET?")) {
                 // Split the trimmed request into parts
-                String[] requestParts = trimmedRequest.split(" ", 2);
+                String[] requestParts = request.split(" ", 2);
                 if (requestParts.length != 2) {
                     System.out.println("Invalid GET? request format");
                     continue;
@@ -208,7 +203,7 @@ public class FullNode implements FullNodeInterface {
                     writer.flush();
                     System.out.println("Sent NOPE response for GET? request with key: " + key);
                 }
-        } else if (request.startsWith("NEAREST")) {
+            } else if (request.startsWith("NEAREST")) {
                 return "not implemented =(";
             } else {
                 System.out.println("invalid request!");
