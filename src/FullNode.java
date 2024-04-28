@@ -145,18 +145,41 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
+                System.out.println("Received GET? request: " + request);
                 String[] requestParts = request.split(" ", 2);
                 if (requestParts.length != 2) {
                     System.out.println("Invalid GET? request format");
                     continue;
                 }
 
-                String key = requestParts[1].trim();
-                StringBuilder keyBuilder = new StringBuilder(); // dont get angy, its messy.
-                keyBuilder.append(key).append("\n");
+                String[] keyParts = requestParts[1].split(" ", 2);
+                if (keyParts.length != 2) {
+                    System.out.println("Invalid key format in GET? request");
+                    continue;
+                }
 
-                if (netMap.contains(key)) {
-                    String value = netMap.get(Integer.parseInt(key)).toString();
+                int keyLines = Integer.parseInt(keyParts[0]);
+                if (keyLines < 1) {
+                    System.out.println("Invalid key lines count in GET? request");
+                    continue;
+                }
+
+                System.out.println("Key lines count: " + keyLines);
+
+                StringBuilder keyBuilder = new StringBuilder();
+                for (int i = 0; i < keyLines; i++) {
+                    String keyLine = reader.readLine();
+                    System.out.println("Key line " + (i + 1) + ": " + keyLine);
+                    keyBuilder.append(keyLine).append("\n");
+                }
+
+                String key = keyBuilder.toString().trim();
+
+                System.out.println("Received key: " + key);
+
+                if (KVPairs.containsKey(key)) {
+                    String value = KVPairs.get(key);
+                    System.out.println("Found value for key: " + key);
                     writer.write("VALUE " + value.split("\n").length);
                     writer.newLine();
                     writer.write(value);
@@ -164,6 +187,7 @@ public class FullNode implements FullNodeInterface {
                     writer.flush();
                     System.out.println("Sent VALUE response for GET? request with key: " + key);
                 } else {
+                    System.out.println("No value found for key: " + key);
                     writer.write("NOPE");
                     writer.newLine();
                     writer.flush();
