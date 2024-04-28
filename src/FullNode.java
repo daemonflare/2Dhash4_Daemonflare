@@ -32,18 +32,6 @@ public class FullNode implements FullNodeInterface {
     String startingNodeName; // starting name
     List<FullNode> netMap = new ArrayList<>(); // mapping
 
-    public static class NodeData {
-        // this is required to calculate nearest I THINK. i'd be damned if i told you in confidence it works
-        String emailName, address;
-        int dist;
-
-        public NodeData(String emailName, String address, int dist) {
-            this.emailName = emailName;
-            this.address = address;
-            this.dist = dist;
-        }
-    }
-
     public FullNode() {
         KVPairs = new HashMap<>();
         this.hashID = generateHashID();
@@ -92,20 +80,19 @@ public class FullNode implements FullNodeInterface {
             } else if (request.startsWith("PUT?")) {
                 String[] requestParts = request.split(" ", 3);
                 if (requestParts.length != 3) {
-                    System.out.println("Formatting error with PUT request!");
+                    System.out.println("Formatting inconsistency! Try retyping");
                     continue;
                 }
 
-                int keyLines = Integer.parseInt(requestParts[1]);
+                int keyLineCount = Integer.parseInt(requestParts[1]);
                 int valLines = Integer.parseInt(requestParts[2]);
 
-                StringBuilder keyBuilder = new StringBuilder();
+                StringBuilder keyConstructor = new StringBuilder();
                 StringBuilder valBuilder = new StringBuilder();
 
-                // keys, values
-                for (int i = 0; i < keyLines; i++) {
+                for (int i = 0; i < keyLineCount; i++) {
                     String keyLine = reader.readLine();
-                    keyBuilder.append(keyLine).append("\n");
+                    keyConstructor.append(keyLine).append("\n");
                 }
 
                 for (int i = 0; i < valLines; i++) {
@@ -113,7 +100,7 @@ public class FullNode implements FullNodeInterface {
                     valBuilder.append(valueLine).append("\n");
                 }
 
-                String key = keyBuilder.toString().trim();
+                String key = keyConstructor.toString().trim();
                 String val = valBuilder.toString().trim();
 
                 KVPairs.put(key, val);
@@ -122,12 +109,11 @@ public class FullNode implements FullNodeInterface {
 
                 writer.write("SUCCESS\n");
                 writer.flush();
-                System.out.println("Success");
             } else if (request.startsWith("ECHO?")) {
                 writer.write("OHCE\n");
                 writer.flush();
                 System.out.println("OHCE sent!");
-            } else if (request.startsWith("NOTIFY?")) { // test
+            } else if (request.startsWith("NOTIFY?")) {
                 try {
                     String nodeName = reader.readLine();
                     String nodeAddr = reader.readLine();
@@ -141,61 +127,54 @@ public class FullNode implements FullNodeInterface {
                 }
             } else if (request.startsWith("END")) {
                 String[] parts = request.split(" ", 2);
-                String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
+                String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // fancy way to check reasoning
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET")) {
-                // Split the trimmed request into parts
                 String[] requestParts = request.split(" ", 2);
                 if (requestParts.length != 2) {
-                    System.out.println("Invalid GET request format");
+                    System.out.println("Format is invalid! Do keycount, stringtocheck on a newline");
                     continue;
                 }
 
-                // Parse the number of key lines
-                int keyLines;
+                int keyLineCount;
+
                 try {
-                    keyLines = Integer.parseInt(requestParts[1]);
+                    keyLineCount = Integer.parseInt(requestParts[1]);
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid key lines count in GET request");
+                    System.out.println("Invalid!");
                     continue;
                 }
 
-                if (keyLines < 1) {
-                    System.out.println("Invalid key lines count in GET request");
+                if (keyLineCount < 1) {
+                    System.out.println("Invalid!");
                     continue;
                 }
 
-                System.out.println("Key lines count: " + keyLines);
+                System.out.println("Key lines count: " + keyLineCount);
 
-                // Read and build the key
-                StringBuilder keyBuilder = new StringBuilder();
-                for (int i = 0; i < keyLines; i++) {
+                StringBuilder keyConstructor = new StringBuilder();
+                for (int i = 0; i < keyLineCount; i++) {
                     String keyLine = reader.readLine();
                     System.out.println("Key line " + (i + 1) + ": " + keyLine);
-                    keyBuilder.append(keyLine).append("\n");
+                    keyConstructor.append(keyLine).append("\n");
                 }
 
-                String key = keyBuilder.toString().trim();
+                String key = keyConstructor.toString().trim();
                 System.out.println("Received key: " + key);
 
-                // Check if the key exists in the KVPairs map
                 if (KVPairs.containsKey(key)) {
                     String value = KVPairs.get(key);
-                    System.out.println("Found value for key: " + key);
+                    System.out.println("Value for key: " + key);
                     writer.write("VALUE " + value.split("\n").length);
                     writer.newLine();
                     writer.write(value);
-                    writer.newLine();
-                    writer.flush();
-                    System.out.println("Sent VALUE response for GET request with key: " + key);
                 } else {
                     System.out.println("No value found for key: " + key);
                     writer.write("NOPE");
-                    writer.newLine();
-                    writer.flush();
-                    System.out.println("Sent NOPE response for GET request with key: " + key);
                 }
+                writer.newLine();
+                writer.flush();
             } else if (request.startsWith("NEAREST")) {
                 return "not implemented =(";
             } else {
