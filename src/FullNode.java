@@ -179,22 +179,12 @@ public class FullNode implements FullNodeInterface {
                 return "not implemented =(";
             } else {
                 System.out.println("invalid request!");
+                writer.write("END\n");
+                writer.flush();
+                clientSocket.close();
             }
         }
         return null;
-    }
-
-    private static String hexToBinary(String hexString) {
-        if (hexString == null) {
-            return "";
-        }
-        StringBuilder binaryStringBuilder = new StringBuilder();
-        for (int i = 0; i < hexString.length(); i += 2) {
-            String hexPair = hexString.substring(i, Math.min(i + 2, hexString.length()));
-            String binary = Integer.toBinaryString(Integer.parseInt(hexPair, 16));
-            binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0'));
-        }
-        return binaryStringBuilder.toString();
     }
 
     public void handleIncomingConnections(String startingNodeName, String startingNodeAddress) {

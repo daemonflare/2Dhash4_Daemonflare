@@ -43,10 +43,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
             int port = Integer.parseInt(segments[1]);
 
             socket = new Socket(ip, port);
-            System.out.println(0);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            System.out.println(1);
 
             writer.write("START 1 " + name + "\n");
             writer.flush();
