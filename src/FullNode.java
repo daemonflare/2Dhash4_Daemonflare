@@ -144,32 +144,25 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } else if (request.startsWith("GET?")) {
+            } else if (request.startsWith("GET")) {
                 // Split the trimmed request into parts
                 String[] requestParts = request.split(" ", 2);
                 if (requestParts.length != 2) {
-                    System.out.println("Invalid GET? request format");
-                    continue;
-                }
-
-                // Split the key parts
-                String[] keyParts = requestParts[1].split(" ", 2);
-                if (keyParts.length != 2) {
-                    System.out.println("Invalid key format in GET? request");
+                    System.out.println("Invalid GET request format");
                     continue;
                 }
 
                 // Parse the number of key lines
                 int keyLines;
                 try {
-                    keyLines = Integer.parseInt(keyParts[0]);
+                    keyLines = Integer.parseInt(requestParts[1]);
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid key lines count in GET? request");
+                    System.out.println("Invalid key lines count in GET request");
                     continue;
                 }
 
                 if (keyLines < 1) {
-                    System.out.println("Invalid key lines count in GET? request");
+                    System.out.println("Invalid key lines count in GET request");
                     continue;
                 }
 
@@ -195,13 +188,13 @@ public class FullNode implements FullNodeInterface {
                     writer.write(value);
                     writer.newLine();
                     writer.flush();
-                    System.out.println("Sent VALUE response for GET? request with key: " + key);
+                    System.out.println("Sent VALUE response for GET request with key: " + key);
                 } else {
                     System.out.println("No value found for key: " + key);
                     writer.write("NOPE");
                     writer.newLine();
                     writer.flush();
-                    System.out.println("Sent NOPE response for GET? request with key: " + key);
+                    System.out.println("Sent NOPE response for GET request with key: " + key);
                 }
             } else if (request.startsWith("NEAREST")) {
                 return "not implemented =(";
