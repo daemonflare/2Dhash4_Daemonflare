@@ -145,7 +145,7 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
-                String[] requestParts = request.split("\s+", 2);
+                String[] requestParts = request.split(" ", 2);
                 if (requestParts.length != 2) {
                     System.out.println("Invalid GET? request format");
                     continue;
