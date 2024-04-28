@@ -173,8 +173,6 @@ public class FullNode implements FullNodeInterface {
                     writer.write("NOPE\n");
                     writer.flush();
                 }
-            }
-
         } else if (request.startsWith("NEAREST")) {
             String[] parts = request.split(" ");
             String convAddress = parts[1];
