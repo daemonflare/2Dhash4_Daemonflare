@@ -9,9 +9,6 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +30,7 @@ public class FullNode implements FullNodeInterface {
     BufferedWriter writer; // writer for outgoing data
     String hashID; // hex ID of this node
     String startingNodeName; // starting name
-    HashMap<Integer, ArrayList<NodeData>> netMap = new HashMap<>(); // mapping
+    List<FullNode> netMap = new ArrayList<>(); // mapping
 
     public static class NodeData {
         // this is required to calculate nearest I THINK. i'd be damned if i told you in confidence it works
@@ -50,6 +47,7 @@ public class FullNode implements FullNodeInterface {
     public FullNode() {
         KVPairs = new HashMap<>();
         this.hashID = generateHashID();
+        netMap.add(this);
     }
 
     private String generateHashID() {
@@ -82,7 +80,7 @@ public class FullNode implements FullNodeInterface {
         }
     }
 
-    private void acceptRequest(Socket clientSocket, String startingNodeName, String startingNodeAddress) throws Exception {
+    private String acceptRequest(Socket clientSocket, String startingNodeName, String startingNodeAddress) throws Exception {
         reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
@@ -120,6 +118,7 @@ public class FullNode implements FullNodeInterface {
 
                 KVPairs.put(key, val);
                 System.out.println("Store successful");
+                System.out.println(KVPairs);
 
                 writer.write("SUCCESS\n");
                 writer.flush();
@@ -146,70 +145,43 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
             } else if (request.startsWith("GET?")) {
-                System.out.println("Full Node request is " + request);
-                String[] requestParts = request.split(" ");
+                String[] requestParts = request.split("\s+", 2);
                 if (requestParts.length != 2) {
-                    System.out.println("Invalid GET request format!");
-                    return; // or handle the error appropriately
+                    System.out.println("Invalid GET? request format");
+                    continue;
                 }
-                String keyLength = requestParts[1];
+
+                int keyLines = Integer.parseInt(requestParts[1]);
                 StringBuilder keyBuilder = new StringBuilder();
-                for (int i = 0; i < Integer.parseInt(keyLength); i++) {
-                    String str = reader.readLine();
-                    System.out.println("String is " + str);
-                    keyBuilder.append(str).append("\n");
+
+                for (int i = 0; i < keyLines; i++) {
+                    String keyLine = reader.readLine();
+                    keyBuilder.append(keyLine).append("\n");
                 }
 
-                String key = keyBuilder.toString();
+                String key = keyBuilder.toString().trim();
 
-                if (KVPairs.containsKey(key)) {
-                    String value = KVPairs.get(key);
-                    System.out.println(value);
-                    writer.write("VALUE " + value.split("\n").length + "\n" + value);
+                if (netMap.contains(key)) {
+                    String value = netMap.get(Integer.parseInt(key)).toString();
+                    writer.write("VALUE " + value.split("\n").length);
+                    writer.newLine();
+                    writer.write(value);
+                    writer.newLine();
                     writer.flush();
+                    System.out.println("Sent VALUE response for GET? request with key: " + key);
                 } else {
-                    System.out.println("NOPE");
-                    writer.write("NOPE\n");
+                    writer.write("NOPE");
+                    writer.newLine();
                     writer.flush();
+                    System.out.println("Sent NOPE response for GET? request with key: " + key);
                 }
-        } else if (request.startsWith("NEAREST")) {
-            String[] parts = request.split(" ");
-            String convAddress = parts[1];
-            System.out.println("convAddress is " + convAddress);
-            List<NodeData> nearestNodes = getNearestNodes(convAddress);
-            String nodes = "";
-            for (NodeData n : nearestNodes) {
-                System.out.println(n.emailName);
-                System.out.println(n.address);
-                System.out.println(n.dist);
-            }
-            writer.write("NODES " + nearestNodes.size() + "\n" + nodes);
-            writer.flush();
-        } else {
-            System.out.println("invalid request!");
-        }
-    }
-
-}
-
-    private List<NodeData> getNearestNodes(String hexID) {
-        List<NodeData> nearestNodes = new ArrayList<>();
-        String thisNodeHex = stringToHex(this.startingNodeName + "\n");
-        int distance = calculateDistanceBetweenNodes(thisNodeHex, hexID);
-        System.out.println("Distance between nodes " + thisNodeHex + " and " + hexID + " is " + distance);
-        for (int i = distance; i >= 0 && nearestNodes.size() < 3; i--) {
-            List<NodeData> n = netMap.get(distance);
-            System.out.println("Test print of n is " + n.toString());
-            for (NodeData nodeInfo : n) {
-                nearestNodes.add(nodeInfo);
-                System.out.println("node " + nodeInfo + " added!");
-                if (nearestNodes.size() == 3) {
-                    break;
-                }
+            } else if (request.startsWith("NEAREST")) {
+                return "not implemented =(";
+            } else {
+                System.out.println("invalid request!");
             }
         }
-        System.out.println("nearest nodes is " + nearestNodes);
-        return nearestNodes;
+        return null;
     }
 
     private static String hexToBinary(String hexString) {
@@ -223,23 +195,6 @@ public class FullNode implements FullNodeInterface {
             binaryStringBuilder.append(String.format("%8s", binary).replace(' ', '0'));
         }
         return binaryStringBuilder.toString();
-    }
-
-    public static int calculateDistanceBetweenNodes(String hashID1, String hashID2) {
-        String binaryHashID1 = hexToBinary(hashID1);
-        String binaryHashID2 = hexToBinary(hashID2);
-
-        int matchingBits = 0;
-        for (int i = 0; i < binaryHashID1.length(); i++) {
-            if (binaryHashID1.charAt(i) == binaryHashID2.charAt(i)) {
-                matchingBits++;
-            } else {
-                break;
-            }
-        }
-
-        System.out.println("Distance between two nodes is " + (256 - matchingBits));
-        return 256 - matchingBits;
     }
 
     public void handleIncomingConnections(String startingNodeName, String startingNodeAddress) {
@@ -264,25 +219,6 @@ public class FullNode implements FullNodeInterface {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public static String stringToHex(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes());
-            StringBuilder hexString = new StringBuilder();
-
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 }
