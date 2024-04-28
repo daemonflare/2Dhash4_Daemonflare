@@ -91,7 +91,7 @@ public class FullNode implements FullNodeInterface {
             if (request.startsWith("START")) {
                 System.out.println("START " + startingNodeName + " " + startingNodeAddress);
             } else if (request.startsWith("PUT?")) {
-                String[] requestParts = request.split("\s+", 3);
+                String[] requestParts = request.split("\n", 3);
                 if (requestParts.length != 3) {
                     System.out.println("Formatting error with PUT request!");
                     continue;
@@ -103,30 +103,28 @@ public class FullNode implements FullNodeInterface {
                 StringBuilder keyBuilder = new StringBuilder();
                 StringBuilder valBuilder = new StringBuilder();
 
-                /*
-                keys and values are split into two
-                iterate through both and then store
-                 */
-
+                // keys, values
                 for (int i = 0; i < keyLines; i++) {
                     String keyLine = reader.readLine();
                     keyBuilder.append(keyLine).append("\n");
                 }
+
                 for (int i = 0; i < valLines; i++) {
                     String valueLine = reader.readLine();
                     valBuilder.append(valueLine).append("\n");
                 }
+
                 String key = keyBuilder.toString().trim();
                 String val = valBuilder.toString().trim();
 
-                // im not sure if storing in KVPairs is correct
                 KVPairs.put(key, val);
-                System.out.println("store successful");
+                System.out.println("Store successful");
 
                 writer.write("SUCCESS\n");
                 writer.flush();
                 System.out.println("Success");
-            } else if (request.startsWith("ECHO?")) {
+            }
+            else if (request.startsWith("ECHO?")) {
                 writer.write("OHCE\n");
                 writer.flush();
                 System.out.println("OHCE sent!");
