@@ -144,21 +144,35 @@ public class FullNode implements FullNodeInterface {
                 String reason = parts.length > 1 ? parts[1] : "Unknown reason"; // cheeky way to validate reason
                 clientSocket.close();
                 System.out.println("connection terminated by client: " + startingNodeName + " with reason: " + reason);
-            } else if (request.startsWith("GET?")) {
-                System.out.println("Received GET? request: " + request);
-                String[] requestParts = request.split(" ", 2);
+            } // Check the incoming requests and trim any leading or trailing whitespace
+            String trimmedRequest = request.trim();
+            System.out.println("Received request: " + trimmedRequest);
+
+// Check if the trimmed request starts with "GET?"
+            if (trimmedRequest.startsWith("GET?")) {
+                // Split the trimmed request into parts
+                String[] requestParts = trimmedRequest.split(" ", 2);
                 if (requestParts.length != 2) {
                     System.out.println("Invalid GET? request format");
                     continue;
                 }
 
+                // Split the key parts
                 String[] keyParts = requestParts[1].split(" ", 2);
                 if (keyParts.length != 2) {
                     System.out.println("Invalid key format in GET? request");
                     continue;
                 }
 
-                int keyLines = Integer.parseInt(keyParts[0]);
+                // Parse the number of key lines
+                int keyLines;
+                try {
+                    keyLines = Integer.parseInt(keyParts[0]);
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid key lines count in GET? request");
+                    continue;
+                }
+
                 if (keyLines < 1) {
                     System.out.println("Invalid key lines count in GET? request");
                     continue;
@@ -166,6 +180,7 @@ public class FullNode implements FullNodeInterface {
 
                 System.out.println("Key lines count: " + keyLines);
 
+                // Read and build the key
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int i = 0; i < keyLines; i++) {
                     String keyLine = reader.readLine();
@@ -174,9 +189,9 @@ public class FullNode implements FullNodeInterface {
                 }
 
                 String key = keyBuilder.toString().trim();
-
                 System.out.println("Received key: " + key);
 
+                // Check if the key exists in the KVPairs map
                 if (KVPairs.containsKey(key)) {
                     String value = KVPairs.get(key);
                     System.out.println("Found value for key: " + key);
@@ -193,7 +208,7 @@ public class FullNode implements FullNodeInterface {
                     writer.flush();
                     System.out.println("Sent NOPE response for GET? request with key: " + key);
                 }
-            } else if (request.startsWith("NEAREST")) {
+        } else if (request.startsWith("NEAREST")) {
                 return "not implemented =(";
             } else {
                 System.out.println("invalid request!");
